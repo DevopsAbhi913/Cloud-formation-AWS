@@ -1,0 +1,290 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  
+  "Description": "CloudFormation Template for ProjectA infra provisioning",
+
+  "Parameters": {
+    "vpccidr": {
+      "Description": "Selecting a cidr block for my VPC",
+      "Type": "String",
+      "Default": "172.20.0.0/16",
+      "AllowedValues": ["172.20.0.0/16", "172.23.0.0/16", "172.27.0.0/16"]
+    },
+    "subnet1cidr": {
+      "Description": "Selecting a cidr block for Subnet1",
+      "Type": "String",
+      "Default": "172.20.0.0/24",
+      "AllowedValues": ["172.20.0.0/24", "172.23.0.0/24", "172.27.0.0/24"]
+    },
+    "subnet2cidr": {
+      "Description": "Selecting a cidr block for Subnet2",
+      "Type": "String",
+      "Default": "172.20.1.0/24",
+      "AllowedValues": ["172.20.1.0/24", "172.23.1.0/24", "172.27.1.0/24"]
+    },
+    "subnet3cidr": {
+      "Description": "Selecting a cidr block for Subnet3",
+      "Type": "String",
+      "Default": "172.20.2.0/24",
+      "AllowedValues": ["172.20.2.0/24", "172.23.2.0/24", "172.27.2.0/24"]
+    },
+    "subnet1AZ": {
+      "Description": "Selecting a AZ for Subnet1",
+      "Type": "AWS::EC2::AvailabilityZone::Name"
+    },
+    "subnet2AZ": {
+      "Description": "Selecting a AZ for Subnet2",
+      "Type": "AWS::EC2::AvailabilityZone::Name"
+    },
+    "subnet3AZ": {
+      "Description": "Selecting a AZ for Subnet3",
+      "Type": "AWS::EC2::AvailabilityZone::Name"
+	},
+    "KeyPair": {
+      "Description": "Selecting a Keypair to enable SSH access",
+      "Type": "AWS::EC2::KeyPair::KeyName"
+    },
+    "GitRepoURL": {
+      "Description": "Git Repository to Clone",
+      "Type": "String",
+      "Default": "https://github.com/DevopsAbhi913/Sample-Website-1.git"
+    }
+  },
+  "Mappings": {
+    "AMIIDMap": {
+      "us-east-1": { "MyAMI" : "ami-08b5b3a93ed654d19" },
+      "us-east-2": { "MyAMI" : "ami-0d0f28110d16ee7d6" },
+      "ap-south-1": { "MyAMI" : "ami-076c6dbba59aa92e6" }
+    },
+    "RegionMap": {
+      "us-east-1": { "InstanceType": "t2.micro" },
+      "us-east-2": { "InstanceType": "t2.small" },
+      "ap-south-1": { "InstanceType": "t2.micro" }
+    }
+  },
+  "Resources": {
+    "MyVPC": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": { "Ref": "vpccidr" },
+        "EnableDnsSupport": true,
+        "EnableDnsHostnames": true,
+        "Tags": [{ "Key": "Name", "Value": "MyVPC" }]
+      }
+    },
+    "Mysubnet1": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": { "Ref": "subnet1AZ" },
+        "CidrBlock": { "Ref": "subnet1cidr" },
+        "VpcId": { "Ref": "MyVPC" },
+        "MapPublicIpOnLaunch": true,
+        "Tags": [{ "Key": "Name", "Value": "Mysubnet1" }]
+      }
+    },
+    "Mysubnet2": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": { "Ref": "subnet2AZ" },
+        "CidrBlock": { "Ref": "subnet2cidr" },
+        "VpcId": { "Ref": "MyVPC" },
+        "MapPublicIpOnLaunch": true,
+        "Tags": [{ "Key": "Name", "Value": "Mysubnet2" }]
+      }
+    },
+    "Mysubnet3": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": { "Ref": "subnet3AZ" },
+        "CidrBlock": { "Ref": "subnet3cidr" },
+        "VpcId": { "Ref": "MyVPC" },
+        "MapPublicIpOnLaunch": true,
+        "Tags": [{ "Key": "Name", "Value": "Mysubnet3" }]
+      }
+    },
+    "RouteTable1": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": { "Ref": "MyVPC" },
+        "Tags": [{ "Key": "Name", "Value": "ProjectArtb1" }]
+      }
+    },
+    "RouteTableAssociation1": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "RouteTableId": { "Ref": "RouteTable1" },
+        "SubnetId": { "Ref": "Mysubnet1" }
+      }
+    },
+    "RouteTableAssociation2": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "RouteTableId": { "Ref": "RouteTable1" },
+        "SubnetId": { "Ref": "Mysubnet2" }
+      }
+    },
+    "RouteTable2": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": { "Ref": "MyVPC" },
+        "Tags": [{ "Key": "Name", "Value": "ProjectArtb2" }]
+      }
+    },
+    "RouteTableAssociation3": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "RouteTableId": { "Ref": "RouteTable2" },
+        "SubnetId": { "Ref": "Mysubnet3" }
+      }
+    },
+    "MyInternetGateway": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": {
+        "Tags": [{ "Key": "Name", "Value": "MyVPCigw" }]
+      }
+    },
+    "IgwAttach": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "InternetGatewayId": { "Ref": "MyInternetGateway" },
+        "VpcId": { "Ref": "MyVPC" }
+      }
+    },
+    "RtRoute": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": { "Ref": "RouteTable1" },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": { "Ref": "MyInternetGateway" }
+      }
+    },
+    "AlbSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Allow http port to client host",
+        "VpcId": { "Ref": "MyVPC" },
+        "SecurityGroupIngress": [
+          { "CidrIp": "0.0.0.0/0", "IpProtocol": "tcp", "FromPort": 80, "ToPort": 80 },
+          { "CidrIp": "0.0.0.0/0", "IpProtocol": "tcp", "FromPort": 22, "ToPort": 22 },
+		  { "CidrIp": "0.0.0.0/0", "IpProtocol": "tcp", "FromPort": 443, "ToPort": 443 },
+          { "CidrIp": "0.0.0.0/0", "IpProtocol": "tcp", "FromPort": 3306, "ToPort": 3306 }
+        ],
+        "SecurityGroupEgress": [{ "CidrIp": "0.0.0.0/0", "IpProtocol": "-1" }],
+        "Tags": [{ "Key": "Name", "Value": "AlbSG" }]
+      }
+    },
+	"Webserver1" : {
+			"Type" : "AWS::EC2::Instance",
+			"Properties" : {
+				"ImageId": { "Fn::FindInMap": ["AMIIDMap", { "Ref": "AWS::Region" }, "MyAMI"] },
+				"InstanceType": { "Fn::FindInMap": ["RegionMap", { "Ref": "AWS::Region" }, "InstanceType"] },
+				"KeyName" : { "Ref" : "KeyPair" },
+				"Monitoring" : true,
+				"SecurityGroupIds" : [ { "Ref" : "AlbSG" } ],
+				"SubnetId" : { "Ref" : "Mysubnet1" },
+				"UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\nsudo yum install httpd git -y\nsudo systemctl start httpd\nsudo systemctl enable httpd\nsudo git clone ${GitRepoURL} /var/www/html"
+                    }
+                },
+				"Tags" : [ {"Key" : "Name", "Value" : "Webserver1" } ]
+			}
+		},
+	"Webserver2" : {
+			"Type" : "AWS::EC2::Instance",
+			"Properties" : {
+				"ImageId": { "Fn::FindInMap": ["AMIIDMap", { "Ref": "AWS::Region" }, "MyAMI"] },
+				"InstanceType": { "Fn::FindInMap": ["RegionMap", { "Ref": "AWS::Region" }, "InstanceType"] },
+				"KeyName" : { "Ref" : "KeyPair" },
+				"Monitoring" : true,
+				"SecurityGroupIds" : [ { "Ref" : "AlbSG" } ],
+				"SubnetId" : { "Ref" : "Mysubnet2" },
+				"UserData": {
+                    "Fn::Base64": {
+                        "Fn::Sub": "#!/bin/bash\nsudo yum install httpd git -y\nsudo systemctl start httpd\nsudo systemctl enable httpd\nsudo git clone ${GitRepoURL} /var/www/html"
+                    }
+				},
+				"Tags" : [ {"Key" : "Name", "Value" : "Webserver2" } ]
+			}
+		},
+	"MyALB" : {
+		"Type" : "AWS::ElasticLoadBalancingV2::LoadBalancer",
+		"Properties" : {
+			"Name" : "MyALB",
+			"Scheme" : "Internet-Facing",
+			"SecurityGroups" : [ {"Ref" : "AlbSG"} ],
+			"Subnets" : [ {"Ref" : "Mysubnet1"}, {"Ref" : "Mysubnet2"} ],
+			"LoadBalancerAttriutes" : [ {
+				"Key" : "idle_timeout.timeout_seconds",
+				"Value" : "60"
+				}
+			]
+		}
+	},
+	"AlbTG" : {
+		"Type" : "AWS::ElasticLoadBalancingV2::TargetGroup",
+		"Properties" : {
+			"HealthCheckEnabled" : true,
+			"HealthCheckIntervalSeconds" : 30,
+			"HealthCheckPath" : "/",
+			"HealthCheckPort" : 80,
+			"HealthCheckProtocol" : "HTTP",
+			"HealthCheckTimeoutSeconds" : 10,
+			"HealthyThresholdCount" : 5,
+			"IpAddressType" : "ipv4",
+			"Matcher" : {
+				"HttpCode" : 200
+						},
+			"Name" : "AlbTG",
+			"Port" : 80,
+			"Protocol" : "HTTP",
+			"Targets" : [ 
+					{"Id" : {"Ref" : "Webserver1"} },
+					{"Id" : {"Ref" : "Webserver2"} }
+						],
+			"TargetType" : "instance",
+			"UnhealthyThresholdCount" : 2,
+			"VpcId" : { "Ref" : "MyVPC" } 
+			}
+		},
+	"myalbhttplistener" : {
+    "Type": "AWS::ElasticLoadBalancingV2::Listener",
+    "Properties": {
+        "DefaultActions": [
+            {
+                "Type": "redirect",
+                "RedirectConfig": {
+                    "Protocol": "HTTPS",
+                    "Port": 443,
+                    "Host": "#{host}",
+                    "Path": "/#{path}",
+                    "Query": "#{query}",
+                    "StatusCode": "HTTP_301"
+                }
+            }
+		],
+			"LoadBalancerArn": { "Ref": "MyALB" },
+			"Port": 80,
+			"Protocol": "HTTP"
+		}
+	}
+  },
+  "Outputs": {
+    "vpcID": {
+      "Description": "projectA VPC ID",
+      "Value": { "Ref": "MyVPC" }
+    },
+    "ProjectAsubnet1ID": {
+      "Description": "ProjectAsubnet1ID",
+      "Value": { "Ref": "Mysubnet1" }
+    },
+    "ProjectAsubnet2ID": {
+      "Description": "ProjectAsubnet2ID",
+      "Value": { "Ref": "Mysubnet2" }
+    },
+    "ProjectAsubnet3ID": {
+      "Description": "ProjectAsubnet3ID",
+      "Value": { "Ref": "Mysubnet3" }
+    }
+   }
+  }

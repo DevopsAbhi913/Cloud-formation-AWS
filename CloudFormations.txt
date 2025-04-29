@@ -1,0 +1,175 @@
+
+																	*CloudFormations*
+	
+	-***Introduction to AWS CloudFormation***-
+=>AWS CloudFormation is an Infrastructure as Code (IaC) service that allows you to define, manage, and automate AWS resources using code. Instead of manually creating
+resources in the AWS Management Console, you write a CloudFormation template (in YAML or JSON) and let AWS handle the deployment.
+
+you can also define it as: 
+=>CloudFormation is AWS’s infrastructure-as-code (IaC) service that helps you define and provision AWS resources using templates. It allows you to automate 
+and manage cloud infrastructure efficiently.																
+
+-Why Use CloudFormation?
+	>Automates Infrastructure Deployment– No need to create resources manually.
+	>Ensures Consistency 				– Deploys the same configuration across multiple environments.
+	>Easier Management     				– Updates and deletes infrastructure with a single command.
+	>Version Control 					– Store templates in Git to track changes.
+	>Multi-Account Deployment 			– Use StackSets to deploy across multiple AWS accounts.
+
+=>Template			- A file written in JSON or YAML that defines AWS resources.
+=>Stack				- A group of AWS resources created and managed together using a template.
+=>StackSet			- Allows deploying CloudFormation stacks across multiple AWS accounts and regions.
+=>Drift Detection	- Checks if infrastructure has changed outside CloudFormation.
+=>Change Sets		- Previews changes before updating a stack.
+
+														------------JSON------------
+
+The following example shows the structure of a JSON-formatted template with all available sections.
+
+{
+  "AWSTemplateFormatVersion" : "version date",
+
+  "Description" : "JSON string",
+
+  "Metadata" : {
+    template metadata
+  },
+
+  "Parameters" : {
+    set of parameters
+  },
+  
+  "Rules" : {
+    set of rules
+  },
+
+  "Mappings" : {
+    set of mappings
+  },
+
+  "Conditions" : {
+    set of conditions
+  },
+
+  "Transform" : {
+    set of transforms
+  },
+
+  "Resources" : {
+    set of resources
+  },
+  
+  "Outputs" : {
+    set of outputs
+  }
+}
+
+>AWSTemplateFormatVersion	- Specifies the CloudFormation template version.
+>Description				- Explains the purpose of the template.
+>Metadata					- Provides additional information (e.g., template details, author, etc.).
+>Parameters					- Defines values that users can input when creating the stack.
+>Mappings					- Allows setting key-value pairs for different regions.
+>Conditions					- Defines when certain resources should be created.
+>Resources					- The most important section — defines AWS services to be created.
+>Outputs					- Displays useful information (e.g., generated resource names, IP addresses).
+
+Types of Syntax :
+1. JSON - "Java Script Object Notation"
+2. YAML - "YAML Ain't Markup Language" or "Yet Another Markup Language,"
+ 
+ Basic Syntax of JSON: 
+ 
+ Data is stored as key-value pairs separated by a colon ":" 
+ each key-value pair is separated by a comma "," 
+ keys are strings and must be enclosed in double quotes "" 
+ values can be strings, numbers, booleans, arrays, objects, or null. 
+ objects are enclosed in curly braces { } 
+ arrays are enclosed in square brackets [ ]
+ 
+ 
+ ****to represent another property in the same object add "," to end of the previous property.
+
+**What is an object in JSON?
+
+ An object in JSON is a collection of key-value pairs enclosed within curly braces (}. Each key is a string (must be enclosed in double quotes) and value can be any
+ valid JSON data type (string, number,boolean, null, array, or another object).
+ 
+**JSON data types:
+ String: "hello world"
+ Number: 10, 3.5
+ Boolean: true, false
+ Null: null
+ Array: ["aws", "azure", "GCP" ]
+ object: {"key": "value"} 
+
+{
+ "name": "vishnu",
+ "salary": 100000,
+ "org": "tos"
+ "isManager": false
+ "skills": ["linux", "aws", "azure", l'devops"]
+	Note: to menssion multiple values in any property, json supports arrays. array which has collection of entries where each entry type "string"
+	
+****stack: A stack is based on a template, which defines the resources and thier configurations.
+A stack is a collection of aws resources that you create, update, or delete as a single unit.
+
+A resources defined in a cloudformation template are deployed as a single stack. you can update, delete, or rollback all resources in a stack at once.
+cloudformation maintains the correct order of resource creation and dependencies.
+if stack creation or update fails, cloudformation automatically rolls back to the previous state.
+
+****stack lifecycle:
+create stack - deploy resources as defined in a template 
+update stack i modifies resources while keeping existing onces. 
+delete stack - removes all resources associated with the stack 
+rollback stack - reverts changes if stack creation or update fails.
+
+****Create a VPC with an IPv4 CIDR block
+	The following example specifies a VPC with an IPv4 address.
+	
+{
+	"Resources": {
+		"ProjectAVPC": {
+			"Type" : "AWS::EC2::VPC",
+			"Properties" : {
+				"CidrBlock" : "172.16.0.0/16",
+				"EnableDnsHostnames" : true,
+				"EnableDnsSupport" : true,
+				"Tags" : [ "key" ]
+    }
+}
+
+
+****Parameters:
+A parameter contains a list of attributes that define its value and constraints against its value. The only required attribute is Type, which can be String, Number, 
+or a CloudFormation-supplied parameter type
+
+**General requirements for parameters
+
+The following requirements apply when using parameters:
+
+*You can have a maximum of 200 parameters in a CloudFormation template.
+*Each parameter must be given a logical name (also called logical ID) that must be alphanumeric and unique among all logical names within the template.*
+*Each parameter must be assigned a parameter type that's supported by CloudFormation. For more information, see Type.
+*Each parameter must be assigned a value at runtime for CloudFormation to successfully provision the stack. You can optionally specify a default value for 
+CloudFormation to use unless another value is provided.
+*Parameters must be declared and referenced from within the same template. You can reference parameters from the Resources and Outputs sections of the template.
+
+"Parameters" : {
+  "ParameterLogicalID" : {
+    "Description": "Information about the parameter",
+    "Type" : "DataType",
+    "Default" : "value",
+    "AllowedValues" : ["value1", "value2"]
+  }
+}
+
+***Referencing parameters
+You use the Ref intrinsic function to reference a parameter, and CloudFormation uses the parameter's value to provision the stack. You can reference parameters 
+from the Resources and Outputs sections of the same template.
+
+
+**********************Error note***********************
+
+Error : Template format error: Unresolved resource dependencies [projectA] in the Resources block of the template.
+
+
